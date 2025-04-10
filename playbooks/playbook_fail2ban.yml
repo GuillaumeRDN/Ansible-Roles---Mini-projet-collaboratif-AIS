@@ -1,0 +1,7 @@
+---
+- name: Installer Fail2Ban via rôle
+  hosts: all
+  become: yes
+
+  roles:
+    - fail2ban

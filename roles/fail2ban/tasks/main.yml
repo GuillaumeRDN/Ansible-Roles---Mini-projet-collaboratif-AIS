@@ -1,0 +1,59 @@
+---
+- name: Installer les dépendances Fail2Ban
+  apt:
+    name:
+      - git
+      - python3
+      - python3-pip
+      - python3-pyinotify
+      - python3-systemd
+      - iptables
+    state: present
+    update_cache: yes
+
+- name: Cloner le dépôt Git de Fail2Ban
+  git:
+    repo: "{{ fail2ban_git_repo }}"
+    dest: "{{ fail2ban_dest_dir }}"
+    version: master
+
+- name: Installer Fail2Ban avec setup.py
+  command: python3 setup.py install
+  args:
+    chdir: "{{ fail2ban_dest_dir }}"
+
+- name: Copier la configuration fail2ban.conf
+  copy:
+    src: "{{ fail2ban_dest_dir }}/files/fail2ban.conf"
+    dest: /etc/fail2ban/fail2ban.conf
+    remote_src: yes
+
+- name: Copier la configuration jail.conf
+  copy:
+    src: "{{ fail2ban_dest_dir }}/files/jail.conf"
+    dest: /etc/fail2ban/jail.conf
+    remote_src: yes
+
+- name: Copier le service systemd de Fail2Ban
+  copy:
+    src: "{{ fail2ban_dest_dir }}/files/fail2ban.service"
+    dest: /etc/systemd/system/fail2ban.service
+    remote_src: yes
+
+- name: Recharger systemd
+  command: systemctl daemon-reexec
+
+- name: Activer et démarrer Fail2Ban
+  systemd:
+    name: fail2ban
+    enabled: yes
+    state: started
+
+- name: Vérifier le statut de Fail2Ban
+  command: fail2ban-client status
+  register: fail2ban_status
+  changed_when: false
+
+- name: Afficher le statut de Fail2Ban
+  debug:
+    var: fail2ban_status.stdout

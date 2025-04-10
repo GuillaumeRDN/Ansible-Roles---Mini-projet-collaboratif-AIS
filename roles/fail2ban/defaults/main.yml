@@ -1,0 +1,2 @@
+fail2ban_git_repo: "https://github.com/fail2ban/fail2ban.git"
+fail2ban_dest_dir: "/opt/fail2ban"
